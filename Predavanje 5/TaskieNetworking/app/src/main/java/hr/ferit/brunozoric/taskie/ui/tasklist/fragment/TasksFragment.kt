@@ -1,4 +1,4 @@
-package hr.ferit.brunozoric.taskie.ui.fragments
+package hr.ferit.brunozoric.taskie.ui.tasklist.fragment
 
 import android.content.Intent
 import android.os.Bundle

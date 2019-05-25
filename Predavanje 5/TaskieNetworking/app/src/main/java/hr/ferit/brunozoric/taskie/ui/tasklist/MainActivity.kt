@@ -1,8 +1,8 @@
-package hr.ferit.brunozoric.taskie.ui.activities
+package hr.ferit.brunozoric.taskie.ui.tasklist
 
 import hr.ferit.brunozoric.taskie.R
 import hr.ferit.brunozoric.taskie.ui.base.BaseActivity
-import hr.ferit.brunozoric.taskie.ui.fragments.TasksFragment
+import hr.ferit.brunozoric.taskie.ui.tasklist.fragment.TasksFragment
 
 class MainActivity : BaseActivity() {
 

@@ -1,4 +1,4 @@
-package hr.ferit.brunozoric.taskie.ui.fragments
+package hr.ferit.brunozoric.taskie.ui.tasklist.fragment
 
 import android.os.Bundle
 import android.text.TextUtils.isEmpty
@@ -16,15 +16,18 @@ import hr.ferit.brunozoric.taskie.model.BackendTask
 import hr.ferit.brunozoric.taskie.model.PriorityColor
 import hr.ferit.brunozoric.taskie.model.request.AddTaskRequest
 import hr.ferit.brunozoric.taskie.networking.BackendFactory
+import hr.ferit.brunozoric.taskie.presentation.AddTaskDialogDialogPresenter
 import kotlinx.android.synthetic.main.fragment_dialog_new_task.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class AddTaskFragmentDialog : DialogFragment() {
+class AddTaskFragmentDialog : DialogFragment(), AddTaskDilogContract.View {
 
     private var taskAddedListener: TaskAddedListener? = null
-    private val interactor = BackendFactory.getTaskieInteractor()
+
+    private val presenter: AddTaskDilogContract.Presenter by
+    lazy { AddTaskDialogDialogPresenter(BackendFactory.getTaskieInteractor()) }
 
     companion object {
         fun newInstance(): AddTaskFragmentDialog {
@@ -39,6 +42,11 @@ class AddTaskFragmentDialog : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NO_TITLE, R.style.FragmentDialogTheme)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        presenter.setView(this)
     }
 
     fun setTaskAddedListener(listener: TaskAddedListener) {
@@ -79,24 +87,10 @@ class AddTaskFragmentDialog : DialogFragment() {
         val title = newTaskTitleInput.text.toString()
         val description = newTaskDescriptionInput.text.toString()
         val priority = prioritySelector.priorityFactory()
-        interactor.save(AddTaskRequest(title, description, priority.getValue()), addTaskCallback())
+        presenter.onAddTask(AddTaskRequest(title, description, priority.getValue()))
         clearUi()
     }
 
-    private fun addTaskCallback(): Callback<BackendTask> = object : Callback<BackendTask> {
-        override fun onFailure(call: Call<BackendTask>?, t: Throwable?) {
-            //TODO : handle default error
-        }
-
-        override fun onResponse(call: Call<BackendTask>?, response: Response<BackendTask>) {
-            if (response.isSuccessful) {
-                when (response.code()) {
-                    RESPONSE_OK -> handleOkResponse(response.body())
-                    else -> handleSomethingWentWrong()
-                }
-            }
-        }
-    }
 
     private fun clearUi() {
         newTaskTitleInput.text.clear()
@@ -106,14 +100,13 @@ class AddTaskFragmentDialog : DialogFragment() {
 
     private fun isInputEmpty(): Boolean = isEmpty(newTaskTitleInput.text) || isEmpty(newTaskDescriptionInput.text)
 
-    private fun handleOkResponse(task: BackendTask?) = task?.run { onTaskiesReceived(this) }
 
-    private fun handleSomethingWentWrong() = this.activity?.displayToast("Something went wrong!")
-
-    private fun onTaskiesReceived(task: BackendTask) {
+    override fun onTaskAdded(task: BackendTask) {
         taskAddedListener?.onTaskAdded(task)
         dismiss()
     }
 
-
+    override fun onTaskAddFailed() {
+        this.activity?.displayToast("Something went wrong!")
+    }
 }

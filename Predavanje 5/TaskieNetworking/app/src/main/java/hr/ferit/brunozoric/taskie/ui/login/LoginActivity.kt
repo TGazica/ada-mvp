@@ -8,7 +8,7 @@ import hr.ferit.brunozoric.taskie.model.request.UserDataRequest
 import hr.ferit.brunozoric.taskie.networking.BackendFactory
 import hr.ferit.brunozoric.taskie.prefs.provideSharedPrefs
 import hr.ferit.brunozoric.taskie.presentation.LoginPresenter
-import hr.ferit.brunozoric.taskie.ui.activities.MainActivity
+import hr.ferit.brunozoric.taskie.ui.tasklist.MainActivity
 import hr.ferit.brunozoric.taskie.ui.register.RegisterActivity
 import hr.ferit.brunozoric.taskie.ui.base.BaseActivity
 import kotlinx.android.synthetic.main.activity_login.*
