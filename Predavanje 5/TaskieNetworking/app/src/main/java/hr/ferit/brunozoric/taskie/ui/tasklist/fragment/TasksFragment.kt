@@ -10,6 +10,7 @@ import hr.ferit.brunozoric.taskie.common.*
 import hr.ferit.brunozoric.taskie.model.BackendTask
 import hr.ferit.brunozoric.taskie.model.response.GetTasksResponse
 import hr.ferit.brunozoric.taskie.networking.BackendFactory
+import hr.ferit.brunozoric.taskie.presentation.TasksFragmentPresenter
 import hr.ferit.brunozoric.taskie.ui.activities.ContainerActivity
 import hr.ferit.brunozoric.taskie.ui.adapters.TaskAdapter
 import hr.ferit.brunozoric.taskie.ui.base.BaseFragment
@@ -18,10 +19,13 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class TasksFragment : BaseFragment(), AddTaskFragmentDialog.TaskAddedListener {
+class TasksFragment : BaseFragment(), AddTaskFragmentDialog.TaskAddedListener, TasksFragmentContract.View {
 
     private val adapter by lazy { TaskAdapter { onItemSelected(it) } }
-    private val interactor = BackendFactory.getTaskieInteractor()
+
+    private val presenter: TasksFragmentContract.Presenter by lazy {
+        TasksFragmentPresenter(BackendFactory.getTaskieInteractor())
+    }
 
     companion object {
         fun newInstance(): Fragment {
@@ -69,35 +73,9 @@ class TasksFragment : BaseFragment(), AddTaskFragmentDialog.TaskAddedListener {
 
     private fun getAllTasks() {
         progress.visible()
-        interactor.getTasks(getTaskieCallback())
+        presenter.onGetAllTasks()
     }
 
-    private fun getTaskieCallback(): Callback<GetTasksResponse> = object : Callback<GetTasksResponse> {
-        override fun onFailure(call: Call<GetTasksResponse>?, t: Throwable?) {
-            progress.gone()
-            //TODO : handle default error
-        }
-
-        override fun onResponse(call: Call<GetTasksResponse>?, response: Response<GetTasksResponse>) {
-            progress.gone()
-            noData.gone()
-            if (response.isSuccessful) {
-                when (response.code()) {
-                    RESPONSE_OK -> handleOkResponse(response)
-                    else -> handleSomethingWentWrong()
-                }
-            }
-        }
-    }
-
-    private fun handleOkResponse(response: Response<GetTasksResponse>) {
-        response.body()?.notes?.run {
-            checkList(this)
-            adapter.setData(this)
-        }
-    }
-
-    private fun handleSomethingWentWrong() = this.activity?.displayToast("Something went wrong!")
 
     private fun checkList(notes: MutableList<BackendTask>) {
         if (notes.isEmpty()) {
@@ -109,4 +87,14 @@ class TasksFragment : BaseFragment(), AddTaskFragmentDialog.TaskAddedListener {
 
     private fun onTaskiesReceived(taskies: MutableList<BackendTask>) = adapter.setData(taskies)
 
+    override fun onTaskListRecieved(tasks: MutableList<BackendTask>) {
+        progress.gone()
+        checkList(tasks)
+        onTaskiesReceived(tasks)
+    }
+
+    override fun onGetTasksFailed() {
+        progress.gone()
+        activity?.displayToast("Failed")
+    }
 }
