@@ -29,6 +29,7 @@ class AddTaskDialogDialogPresenter (private val interactor: TaskieInteractor): A
 
         override fun onResponse(call: Call<BackendTask>?, response: Response<BackendTask>) {
             if (response.isSuccessful) {
+                response.body()?.run { handleOkResponse(this) }
                 when (response.code()) {
                     RESPONSE_OK -> handleOkResponse(response.body())
                     else -> handleSomethingWentWrong()
